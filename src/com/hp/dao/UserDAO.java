@@ -1,6 +1,7 @@
 package com.hp.dao;
 import com.hp.bean.User;
 import com.hp.util.DBHelper;
+import com.hp.util.PageBeanUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -12,7 +13,45 @@ import java.util.List;
 //dao 层应该是个接口，  为什么 因为可以 使用 aop  你不用aop,就可以直接写成类
 public class UserDAO {
     //增删改查
-    //查询
+
+    //登录  select * from t_user where username=? and password =?;
+    // 登陆  select * from t_user where username =? and password =?
+    public User login(String username,String password){
+        User user =null;
+        // 1. 创建链接
+        Connection connection = DBHelper.getConnection();
+        // 2. 建出 sql 语句
+        String sql = " select * from t_user where username = ? and password = ?  ";
+        // 3. 使用链接对象 获取 预编译对象
+        PreparedStatement ps=null;
+        ResultSet rs=null;
+        try {
+            ps = connection.prepareStatement(sql);
+            ps.setString(1,username);
+            ps.setString(2,password);
+            // 4. 执行 预编译对象,得出结果集
+            rs = ps.executeQuery();
+            if(rs.next()){
+                user = new User();
+                user.setId(rs.getInt("id"));
+                user.setCreate_time(rs.getString("create_time"));
+                user.setImg(rs.getString("img"));
+                user.setIs_del(rs.getInt("is_del"));
+                user.setModify_time(rs.getString("modify_time"));
+                user.setPassword(rs.getString("password"));
+                user.setReal_name(rs.getString("real_name"));
+                user.setType(rs.getInt("type"));
+                user.setUsername(rs.getString("username"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return user;
+    }
+    
+
+
+    //全查询
     public List<User> selectAll(){
         List<User> userlist=new ArrayList<>();
 
@@ -28,6 +67,7 @@ public class UserDAO {
 
         PreparedStatement ps=null;
         ResultSet rs=null;
+
         try {
             //步骤3：使用连接对象  获取预编译对象
            ps=connection.prepareStatement(sql);
@@ -36,8 +76,8 @@ public class UserDAO {
            rs=ps.executeQuery();
             //步骤5：遍历结果集   一一的获取对象
             while (rs.next()){
+               User  user =new User();
                 System.out.println("username"+rs.getString("username")); //拿到每一个 row
-                User user=new User();
                 user.setId(rs.getInt("id"));
                 user.setCreate_time(rs.getString("create_time"));
                 user.setImg(rs.getString("img"));
@@ -59,6 +99,83 @@ public class UserDAO {
             }
         }
         return userlist;
+    }
+
+    //动态的带参数的分页查询   以后mybatis 会简化
+    // page是我们的页数     limit 是条数
+    public List<User> selectAllByParam(int page,int limit){
+        List<User> lists=new ArrayList<>();
+        //1：创建出连接对象
+        Connection connection= DBHelper.getConnection();
+        //2：创建出sql语句
+        String sql="select * from t_user limit ?,?";
+        //3.预编译 sql
+        PreparedStatement ps= null;
+        ResultSet rs=null;
+        PageBeanUtil pageBeanUtil=new PageBeanUtil(page,limit);  //因为第一个问号需要求出来
+        try {
+            ps=connection.prepareStatement(sql);
+            ps.setInt(1,pageBeanUtil.getStart());  //这是索引
+            ps.setInt(2,limit);
+            //4.执行 sql
+            rs=ps.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                System.out.println("username" + rs.getString("username")); //拿到每一个 row
+                user.setId(rs.getInt("id"));
+                user.setCreate_time(rs.getString("create_time"));
+                user.setImg(rs.getString("img"));
+                user.setIs_del(rs.getInt("is_del"));
+                user.setModify_time(rs.getString("modify_time"));
+                user.setPassword(rs.getString("password"));
+                user.setReal_name(rs.getString("real_name"));
+                user.setType(rs.getInt("type"));
+                user.setUsername(rs.getString("username"));
+                lists.add(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return lists;
+    }
+    
+    //查询总条数
+    public int selectCount(){
+        //1.开连接
+       Connection connection= DBHelper.getConnection();
+       //2.书写sql语句
+        String sql="select count(*)  total from t_user";
+        //3.预编译
+        PreparedStatement ps=null;
+        ResultSet rs=null;
+        int total=0;
+        try {
+            ps=connection.prepareStatement(sql);
+            //4.执行
+          rs= ps.executeQuery();
+          if(rs.next()){
+              total= rs.getInt("total");
+          }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        return total;
     }
 
     //新增
@@ -191,10 +308,22 @@ public class UserDAO {
 //        user.setId(24);
 //        int i=dao.update(user);
 //        System.out.println("i = " + i);
-        
+
         //删除的实现
-        user.setId(62);
-        int i=dao.del(user);
+//        user.setId(62);
+//        int i=dao.del(user);
+//        System.out.println("i = " + i);
+        //登录测试
+//        User abc = dao.login("abc", "123456");
+//        System.out.println("abc = " + abc);
+
+        //分页查询的测试
+//        List<User> users=dao.selectAllByParam(1,5);
+//        System.out.println("users = " + users);
+//        System.out.println("users 长度=" + users.size());
+        
+        //查总条数
+        int i=dao.selectCount();
         System.out.println("i = " + i);
     }
 }

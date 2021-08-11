@@ -28,7 +28,8 @@
             <label class="layui-form-label">验证码</label>
             <div class="layui-input-inline">
                 <input type="text" name="code" class="layui-input">
-                <img src="/XianServlet" style="width:70px;height: 30px">
+                <img id="img" src="/CodeServlet" style="width:70px;height: 30px" alt="验证码" onclick="changeImg()">
+
             </div>
         </div>
 
@@ -41,26 +42,54 @@
 
 </div>
 <script>
-    layui.use(['form','jquery'],function () {
+    layui.use(['form','jquery','layer'],function () {
         var form=layui.form;
         var $=layui.jquery;
+        var layer=layui.layer;
 
         form.on('submit(formLogin)', function(data){
-            console.log('data 是什么')
-            console.log(data)
-            console.log('data.elem 原始DOM对象');
-            console.log(data.elem);  //原始DOM对象
-            console.log('data.value  被选中的值');
-            console.log(data.value); //被选中的值
-            console.log('data.othis  美化后的Dom对象'); //美化后的Dom对象
-            console.log(data.othis);
-            console.log('data.field date中的form下的name属性');  //date中的form下的name属性
-            console.log(data.field);
-            console.log('data.userName data中的form下的 name=username 属性中的值');
-            console.log(data.userName);  //data中的form下的 name=username 属性中的值
-        });
+            // console.log('data是什么')
+            // console.log(data)
+            // console.log('data.elem 原始对象')
+            // console.log(data.elem); //原始DOM对象
+            // console.log('data.value 被选中的值')
+            // consoles.log(data.value); //被选中的值
+            // console.log('data.othis 美化后的DOM对象')
+            // console.log(data.othis); //美化后的DOM对象
+            // console.log('data.field data中form下的name属性')
+            console.log(data.field) //data中form下的name属性
+            // console.log('data.userName data中form下的name=username属性中的值')
+            // console.log(data.userName) //name=userName属性
 
-        })
-        </script>
+            $.ajax({
+                url:'/LoginServlet',
+                type:'POST',
+                data:data.field,
+                success:function (res){
+                    console.log(res)
+                    if(res.code==400){
+                        layer.msg(res.msg)
+                    }
+
+                    if(res.code==4001){
+                        layer.msg(res.msg)
+                    }
+
+                    if(res.code==0){
+                        //前后端分离、页面跳转由前端负责
+                        window.location.href="/home.html"
+                    }
+                },
+                dataType:'json'
+            })
+        });
+    });
+    //验证码方法
+    function changeImg() {
+        document.getElementById("img").src = "/CodeServlet?d=" + Math.random();
+    }
+
+
+</script>
 </body>
 </html>
