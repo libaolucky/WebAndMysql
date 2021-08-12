@@ -1,4 +1,5 @@
 package com.hp.dao;
+
 import com.hp.bean.User;
 import com.hp.util.DBHelper;
 import com.hp.util.PageBeanUtil;
@@ -9,6 +10,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 //dao 层应该是个接口，  为什么 因为可以 使用 aop  你不用aop,就可以直接写成类
 public class UserDAO {
@@ -103,20 +105,52 @@ public class UserDAO {
 
     //动态的带参数的分页查询   以后mybatis 会简化
     // page是我们的页数     limit 是条数
-    public List<User> selectAllByParam(int page,int limit){
+    public List<User> selectAllByParam(Map map){
+        System.out.println("map = " + map);
+        System.out.println(" jinqu dao" );
+
+        String page=(String) map.get("page");   //接收前端的参数 放入到map中，这里直接获取就行了
+        String limit =(String)map.get("limit");
+        String real_name=(String)map.get("real_name");
+        String type=(String)map.get("type");
+        String username=(String)map.get("username");
+        //如果说  real_name  不为空
+        //  sql= select * from t_user where real_name like %张% limit ?,?
+        //如果说 type 不为空   real_name 不为空
+        //  sql= select * from t_user where real_name like %张%  and type=1 limit ?,?
+        //如果说 type 不为空   real_name 不为空 username 不为空
+        //  sql= select * from t_user where real_name like %张%  and type=1  and username like %李% limit ?,?
+
+
         List<User> lists=new ArrayList<>();
         //1：创建出连接对象
         Connection connection= DBHelper.getConnection();
         //2：创建出sql语句
-        String sql="select * from t_user limit ?,?";
+//        String sql="select * from t_user where +"+
+//                "           "+
+//                ""+
+//                "   +       limit ?,?  ";
+        String sql="select * from t_user where 1=1";  //where 1=1 因为有多余的  and
+        if(null!=real_name && real_name.length()>0){
+            sql =sql +" and real_name like '%"+real_name+"%' ";
+        }
+        if(null!=type && type.length()>0){
+            sql =sql +" and type = "+type+"   ";
+        }
+        if(null!=username && username.length()>0){
+            sql =sql +" and username like '%"+username+"%' ";
+        }
+        sql=sql+" limit  ? , ?";
+        System.out.println("da de  sql= " + sql);
+
         //3.预编译 sql
         PreparedStatement ps= null;
         ResultSet rs=null;
-        PageBeanUtil pageBeanUtil=new PageBeanUtil(page,limit);  //因为第一个问号需要求出来
+        PageBeanUtil pageBeanUtil=new PageBeanUtil(Integer.parseInt(page),Integer.parseInt(limit));  //因为第一个问号需要求出来
         try {
             ps=connection.prepareStatement(sql);
             ps.setInt(1,pageBeanUtil.getStart());  //这是索引
-            ps.setInt(2,limit);
+            ps.setInt(2,Integer.parseInt(limit));
             //4.执行 sql
             rs=ps.executeQuery();
             while (rs.next()) {
@@ -148,11 +182,27 @@ public class UserDAO {
     }
     
     //查询总条数
-    public int selectCount(){
+    public int selectCount(Map map1){
+
+        String real_name=(String)map1.get("real_name");
+        String type=(String)map1.get("type");
+        String username=(String)map1.get("username");
+
         //1.开连接
        Connection connection= DBHelper.getConnection();
        //2.书写sql语句
-        String sql="select count(*)  total from t_user";
+        String sql="select count(*)  total from t_user where 1=1";
+        if(null!=real_name && real_name.length()>0){
+            sql =sql +" and real_name like '%"+real_name+"%' ";
+        }
+        if(null!=type && type.length()>0){
+            sql =sql +" and type = "+type+"   ";
+        }
+        if(null!=username && username.length()>0){
+            sql =sql +" and username like '%"+username+"%' ";
+        }
+        System.out.println("sql count的 = " + sql);
+
         //3.预编译
         PreparedStatement ps=null;
         ResultSet rs=null;
@@ -247,6 +297,34 @@ public class UserDAO {
         }
         return  a;
     }
+
+    //更新 is_del
+    public int updateisdel(User user){
+        //步骤1：创建出连接对象
+        Connection connection= DBHelper.getConnection();
+        //步骤2：创建出sql语句  因为 添加的数据时变量，所以要用  ?代替
+        String sql="update t_user set is_del=? where id=?";
+        PreparedStatement ps=null;
+        int a=0;
+        try {
+            //3.预编译  sql
+            ps=connection.prepareStatement(sql);
+            ps.setInt(1,user.getIs_del());
+            ps.setInt(2,user.getId());
+
+            //4.执行预编译对象
+            a= ps.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }finally {
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        return  a;
+    }
     
     //删除
     public int del(User user){
@@ -323,7 +401,13 @@ public class UserDAO {
 //        System.out.println("users 长度=" + users.size());
         
         //查总条数
-        int i=dao.selectCount();
-        System.out.println("i = " + i);
+//        int i=dao.selectCount();
+//        System.out.println("i = " + i);
+
+        user.setIs_del(1);
+        user.setId(8);
+        int up2=dao.updateisdel(user);
+        System.out.println("up2 = " + up2);
+        
     }
 }
