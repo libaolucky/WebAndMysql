@@ -231,10 +231,11 @@ public class UserDAO {
     //新增
     public int addUser(User user){
         //步骤1：创建出连接对象
+        //System.out.println("Dao  user = " + user);
+
         Connection connection= DBHelper.getConnection();
         //步骤2：创建出sql语句  因为 添加的数据时变量，所以要用  ?代替
         String sql="insert into t_user  values (null,?,?,?,?,?,?,?,?)";
-
         PreparedStatement ps=null;
         int i=0;
         try {
@@ -248,7 +249,7 @@ public class UserDAO {
             ps.setInt(6,user.getIs_del());
             ps.setString(7,user.getCreate_time());
             ps.setString(8,user.getModify_time());
-            
+            System.out.println("sql = " + sql);
             //4.执行预编译对象
             i= ps.executeUpdate();
         } catch (SQLException e) {
@@ -268,7 +269,7 @@ public class UserDAO {
         //步骤1：创建出连接对象
         Connection connection= DBHelper.getConnection();
         //步骤2：创建出sql语句  因为 添加的数据时变量，所以要用  ?代替
-        String sql="update t_user set username=?,password=?,real_name=?,img=?,type=?,is_del=?,create_time=?,modify_time=? where id=?";
+        String sql="update t_user set username=?,password=?,real_name=?,img=?,type=?,is_del=?,modify_time=? where id=?";
         PreparedStatement ps=null;
         int a=0;
         try {
@@ -280,9 +281,8 @@ public class UserDAO {
             ps.setString(4,user.getImg());
             ps.setInt(5,user.getType());
             ps.setInt(6,user.getIs_del());
-            ps.setString(7,user.getCreate_time());
-            ps.setString(8,user.getModify_time());
-            ps.setInt(9,user.getId());
+            ps.setString(7,user.getModify_time());
+            ps.setInt(8,user.getId());
 
             //4.执行预编译对象
             a= ps.executeUpdate();
@@ -299,7 +299,7 @@ public class UserDAO {
     }
 
     //更新 is_del
-    public int updateisdel(User user){
+    public int updateUserById(Integer sfDel, Integer userId){
         //步骤1：创建出连接对象
         Connection connection= DBHelper.getConnection();
         //步骤2：创建出sql语句  因为 添加的数据时变量，所以要用  ?代替
@@ -309,8 +309,8 @@ public class UserDAO {
         try {
             //3.预编译  sql
             ps=connection.prepareStatement(sql);
-            ps.setInt(1,user.getIs_del());
-            ps.setInt(2,user.getId());
+            ps.setInt(1,sfDel);
+            ps.setInt(2,userId);
 
             //4.执行预编译对象
             a= ps.executeUpdate();
@@ -375,15 +375,15 @@ public class UserDAO {
 //        System.out.println("i = " + i);
 
         //修改的实现
-//        user.setUsername("baitu");
-//        user.setType(3);
-//        user.setReal_name("白兔");
-//        user.setPassword("12348");
+//        user.setUsername("gjfkljhl");
+//        user.setType(1);
+//        user.setReal_name("hil");
+//        user.setPassword("123487489");
 //        user.setModify_time("2009-12-02");
-//        user.setIs_del(5);
+//        user.setIs_del(2);
 //        user.setImg("xxx");
-//        user.setCreate_time("2021-09-08");
-//        user.setId(24);
+//       // user.setCreate_time("2021-09-08");
+//        user.setId(7);
 //        int i=dao.update(user);
 //        System.out.println("i = " + i);
 
@@ -404,10 +404,8 @@ public class UserDAO {
 //        int i=dao.selectCount();
 //        System.out.println("i = " + i);
 
-        user.setIs_del(1);
-        user.setId(8);
-        int up2=dao.updateisdel(user);
-        System.out.println("up2 = " + up2);
-        
+//        int up2=dao.updateUserById(2,39);
+//        System.out.println("up2 = " + up2);
+
     }
 }
